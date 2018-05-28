@@ -76,7 +76,7 @@ def mean_centre_radius_over_eccentricity(parvo=True):
 def get_RCG_radii(parvo=True, centre=True):
     figure = 'a' if centre else 'b'
     series = 'P' if parvo else 'M'
-    filename = './data/caplan_1995_4{}_{}'.format(figure, series)
+    filename = './data/croner_1995_4{}_{}'.format(figure, series)
 
     eccentricities = []
     radii = []
@@ -87,6 +87,10 @@ def get_RCG_radii(parvo=True, centre=True):
             radii.append(float(row[1]))
 
     return np.array(eccentricities), np.array(radii)
+
+
+def get_RCG_density():
+    pass
 
 
 def make_target_image(shape=(400,400,3)):
