@@ -10,6 +10,12 @@ from scipy.ndimage import map_coordinates
 import numpy as np
 from skimage.transform import SimilarityTransform
 
+
+# Assume 16mm from fovea on retinal surface corresponds to 90 degrees (~full range in nasal direction from
+# Wassle et al., 1989, and ~full macaque field of view from Van Essen et al., 1984, Vision Research).
+degrees_per_mm = 90 / 16
+
+
 class RGCMap():
     """
     Remaps images with foveated resolution modelled on macaque retinal ganglion cells. The map is
@@ -67,7 +73,6 @@ class RGCMap():
         pass
 
 
-
 def mean_centre_radius_over_eccentricity(parvo=True):
     eccentricities, radii = get_RCG_radii(parvo, centre=True)
     return np.mean(radii) / np.mean(eccentricities)
@@ -77,20 +82,46 @@ def get_RCG_radii(parvo=True, centre=True):
     figure = 'a' if centre else 'b'
     series = 'P' if parvo else 'M'
     filename = './data/croner_1995_4{}_{}'.format(figure, series)
+    eccentricities, radii = _get_data(filename)
+    return eccentricities, radii
 
+
+def get_RCG_density():
+    filename = './data/wassle_1989_3'
+    eccentricities, densities = _get_data(filename)
+    eccentricities = eccentricities * degrees_per_mm
+    return eccentricities, densities
+
+
+def get_RGC_magno_fraction(direction):
+    """
+    :param direction: direction along retina from fovea: 'dorsal', 'nasal', 'temporal', or 'ventral'
+    :return: eccentricities, fractions
+    """
+
+    filename = './data/silveira_1991_17_{}'.format(direction)
+    eccentricities, percents = _get_data(filename)
+    eccentricities = eccentricities * degrees_per_mm
+    return eccentricities, percents / 100
+
+
+def _get_data(filename):
+    """
+    :param filename: name of a comma-separated data file with two columns: eccentricity and some other
+        quantity x
+    :return: eccentricities, x
+    """
     eccentricities = []
-    radii = []
+    x = []
+
     with open(filename) as file:
         r = csv.reader(file)
         for row in r:
             eccentricities.append(float(row[0]))
-            radii.append(float(row[1]))
+            x.append(float(row[1]))
 
-    return np.array(eccentricities), np.array(radii)
+    return np.array(eccentricities), np.array(x)
 
-
-def get_RCG_density():
-    pass
 
 
 def make_target_image(shape=(400,400,3)):
@@ -134,10 +165,23 @@ class AngleEccentricityMap:
         return xy
 
 
-rgcm = RGCMap(256, show_fit=False)
-degrees, pixels = rgcm.get_radial_positions()
-print(degrees)
-print(pixels.shape)
+# rgcm = RGCMap(256, show_fit=False)
+# degrees, pixels = rgcm.get_radial_positions()
+# print(degrees)
+# print(pixels.shape)
+
+# eccentricities, radii = get_RCG_radii(parvo=False, centre=True)
+# plt.plot(eccentricities, radii, '.')
+# plt.show()
+
+# eccentricities, densities = get_RCG_density()
+# plt.plot(eccentricities, densities, '.')
+# plt.show()
+
+eccentricities, fractions = get_RGC_magno_fraction('ventral')
+plt.plot(eccentricities, fractions, '.')
+plt.show()
+
 
 # get_RCG_radii(parvo=False, centre=False)
 # print(mean_centre_radius_over_eccentricity())
@@ -154,6 +198,6 @@ print(pixels.shape)
 # # print(time.time() - before)
 # print(warped.shape)
 #
-# viewer = ImageViewer(image)
-# # viewer = ImageViewer(warped)
+# # viewer = ImageViewer(image)
+# viewer = ImageViewer(warped)
 # viewer.show()
