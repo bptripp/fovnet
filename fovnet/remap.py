@@ -109,7 +109,7 @@ def get_RGC_magno_fractions(direction):
 def get_RGC_dendritic_field_diameters(parvo, direction):
     """
     :param parvo: returns parvocellular data if true, magno if false
-    :param direction: direction along retina from fovea: 'dorsal', 'nasal', 'temporal', or 'ventral'
+    :param direction: direction along retina from fovea: 'nasal', 'temporal', or 'vertical'
     :return: eccentricities (degrees visual angle), dendritic field diameters (micrometers)
     """
 
@@ -161,7 +161,47 @@ def get_RGC_scaled_diameters(parvo, peripheral_only=False):
     return diameter_eccentricities, diameters
 
 
+def get_magno_fraction_fit(show=False):
+    ne, nf = get_RGC_magno_fractions('nasal')
+    te, tf = get_RGC_magno_fractions('temporal')
+    de, df = get_RGC_magno_fractions('dorsal')
+    ve, vf = get_RGC_magno_fractions('ventral')
+    e = list(itertools.chain(*(ne, te, de, ve)))
+    f = list(itertools.chain(*(nf, tf, df, vf)))
+    fit = np.poly1d(np.polyfit(e, f, 2))
+
+    if show:
+        plt.plot(ne, nf, 'k.')
+        plt.plot(te, tf, 'r.')
+        plt.plot(de, df, 'g.')
+        plt.plot(ve, vf, 'b.')
+        xx = np.linspace(0, 90, 30)
+        plt.plot(xx, fit(xx), 'k-')
+        plt.show()
+
+    return fit
+
+
 def get_density_fit(parvo=True):
+    class Fit:
+        def __init__(self, parvo=True):
+            self.parvo = parvo
+            self.total_density_fit = get_total_density_fit()
+            self.magno_fraction_fit = get_magno_fraction_fit()
+
+        def __call__(self, eccentricities):
+            total = self.total_density_fit(eccentricities)
+            magno = self.magno_fraction_fit(eccentricities)
+
+            if self.parvo:
+                return np.multiply(total, 1 - magno)
+            else:
+                return np.multiply(total, magno)
+
+    return Fit(parvo)
+
+
+def get_total_density_fit(show=False):
     """
     TODO: using Wassle because they correct for RGC deviation; Perry shows nasal density is oddball
     :param parvo:
@@ -190,7 +230,7 @@ def get_density_fit(parvo=True):
     te = [te[i] for i in t_order]
     td = [td[i] for i in t_order]
 
-    class fit:
+    class Fit:
         def __init__(self, ne, nd, te, td):
             self.ne = ne
             self.nd = nd
@@ -202,16 +242,18 @@ def get_density_fit(parvo=True):
             temporal_estimate = np.exp(np.interp(eccentricities, self.te, np.log(self.td)))
             return .25*nasal_estimate + .75*temporal_estimate
 
-    xx = np.linspace(0, 90, 40)
-    plt.semilogy(ne, nd, 'k.')
-    plt.semilogy(xx, np.exp(np.interp(xx, ne, np.log(nd))), 'k-')
-    plt.semilogy(te, td, 'b.')
-    plt.semilogy(xx, np.exp(np.interp(xx, te, np.log(td))), 'b-')
-    f = fit(ne, nd, te, td)
-    plt.semilogy(xx, f(xx), 'r-')
-    plt.show()
+    fit = Fit(ne, nd, te, td)
 
-    return f
+    if show:
+        xx = np.linspace(0, 90, 40)
+        plt.semilogy(ne, nd, 'k.')
+        plt.semilogy(xx, np.exp(np.interp(xx, ne, np.log(nd))), 'k-')
+        plt.semilogy(te, td, 'b.')
+        plt.semilogy(xx, np.exp(np.interp(xx, te, np.log(td))), 'b-')
+        plt.semilogy(xx, fit(xx), 'r-')
+        plt.show()
+
+    return fit
 
 
 def get_centre_radius_fit(parvo=True):
@@ -230,6 +272,10 @@ def get_centre_radius_fit(parvo=True):
 
 
 def get_surround_radius_fit():
+    """
+    TODO: no difference parvo magno
+    :return:
+    """
     pe, pr = get_RCG_radii(parvo=True, centre=False)
     me, mr = get_RCG_radii(parvo=False, centre=False)
     e = list(itertools.chain(*(pe, me)))
@@ -333,7 +379,15 @@ class AngleEccentricityMap:
 # plt.plot(xx, surround_fit(xx))
 # plt.show()
 
-get_density_fit(parvo=True)
+# f = get_total_density_fit(show=False)
+# get_magno_fraction_fit(show=True)
+
+xx = np.linspace(0, 90, 30)
+parvo_fit = get_density_fit(parvo=True)
+magno_fit = get_density_fit(parvo=False)
+plt.plot(xx, parvo_fit(xx), 'r')
+plt.plot(xx, magno_fit(xx), 'b')
+plt.show()
 
 # eccentricities, densities = get_RCG_densities()
 # plt.plot(eccentricities, densities, '.')
