@@ -173,6 +173,7 @@ def get_density_fit(parvo=True):
             self.magno_fraction_fit = get_magno_fraction_fit()
 
         def __call__(self, eccentricities):
+            eccentricities = np.clip(eccentricities, 0, 90)
             total = self.total_density_fit(eccentricities)
             magno = self.magno_fraction_fit(eccentricities)
 

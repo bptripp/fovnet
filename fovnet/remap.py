@@ -1,5 +1,3 @@
-import timeit
-import time
 import matplotlib.pyplot as plt
 from skimage.transform import warp, warp_coords
 from skimage.filters import gaussian
@@ -10,64 +8,71 @@ import numpy as np
 from scipy.interpolate import interp1d
 from skimage.transform import SimilarityTransform
 from fovnet.data.retina import get_RCG_radii
-
+from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
 
 class RGCMap():
-    """
-    Remaps images with foveated resolution modelled on macaque retinal ganglion cells. The map is
-    organized in an eccentricity-angle grid. Foveated cortex-like representations can be produced
-    by convolution of this map. As in the macaque, a map includes only one half of the scene, and
-    there are maps with different resolutions for parvocellular and magnocellular systems. The
-    caller specifies the left or right field, and parvo or magnocellular.
-    """
+    def __init__(self, source_pixels, source_degrees, scale, angle_steps, right=True, parvo=True, centre=True):
+        self.source_pixels = source_pixels
+        self.source_degrees = source_degrees
+        self.pixels_per_degree = source_pixels / source_degrees
+        self.scale = scale
+        self.density_function = get_density_fit(parvo)
 
-    def __init__(self, image_width, right=True, parvo=True, pixels_per_radius=0.5, radii_per_step=2, show_fit=False):
-        assert radii_per_step > 0
-        assert pixels_per_radius > 0
+        print(self.pixels_per_degree)
 
-        self.image_width = image_width
-        self.right_field = right
-        self.parvo = parvo
-        self.pixels_per_foveal_radius = pixels_per_radius
-        self.radii_per_step = radii_per_step
+        self.radial_pixel_positions = self.get_radial_positions()
+        if right:
+            self.angles = -np.pi/2 + np.linspace(0, np.pi, angle_steps)
+        else:
+            self.angles = 3*np.pi/2 - np.linspace(0, np.pi, angle_steps)
 
-        ce, cr = get_RCG_radii(parvo=self.parvo, centre=True)
-        self.centre_radii = np.poly1d(np.polyfit(ce, cr, 2))
+        centre_radius_fit = get_centre_radius_fit(parvo=parvo)
+        self.centre_radii = self.pixels_per_degree \
+            * centre_radius_fit(self.radial_pixel_positions / self.pixels_per_degree)
 
-        se, sr = get_RCG_radii(parvo=self.parvo, centre=False)
-        self.surround_radii = np.poly1d(np.polyfit(se, sr, 2))
+        surround_radius_fit = get_surround_radius_fit()
+        self.surround_radii = self.pixels_per_degree \
+            * surround_radius_fit(self.radial_pixel_positions / self.pixels_per_degree)
 
-        if show_fit:
-            xx = np.linspace(0, 90, 20)
-            plt.plot(ce, cr, '.', xx, self.centre_radii(xx), '-')
-            plt.plot(se, sr, 'x', xx, self.surround_radii(xx), '--')
-            plt.show()
+    def pixels_between_rfs(self, eccentricity):
+        """
+        :param eccentricity: distance from fovea in degrees visual angle
+        :return: number of pixels between RF centres at that eccentricity
+        """
 
+        # This is basically unit book-keeping, as follows:
+        # map_density(map_cells/degree) = scale(map_cells/actual_cell) * density(actual_cells/degree)
+        # pixels/map_cell = (pixels/degree) / map_density(map_cells/degree)
+
+        map_density = self.scale * self.density_function(eccentricity)
+        print('density {} map-density {} pixel-step {}'.format(self.density_function(eccentricity), map_density, self.pixels_per_degree / map_density))
+        return self.pixels_per_degree / map_density
+
+    def rf_step_degrees(self, eccentricity):
+        map_density = self.scale * self.density_function(eccentricity)
+        return 1 / map_density
 
     def get_radial_positions(self):
-        pixels_per_degree = self.pixels_per_foveal_radius / self.centre_radii(0)
-
         def get_euler_step(eccentricity):
-            return self.centre_radii(eccentricity) * self.radii_per_step
+            return self.rf_step_degrees(eccentricity)
 
         def get_trapezoidal_step(eccentricity):
             euler_step = get_euler_step(eccentricity)
-            radius_before_step = self.centre_radii(eccentricity)
-            radius_after_step = self.centre_radii(eccentricity + euler_step)
-            return (radius_before_step + radius_after_step) / 2 * self.radii_per_step
+            step_size_after_step = self.rf_step_degrees(eccentricity + euler_step)
+            return (euler_step + step_size_after_step) / 2
 
         degrees = [get_trapezoidal_step(0)]
-        while pixels_per_degree * degrees[-1] <= self.image_width / 2:
-            # print(degrees[-1])
+        while degrees[-1] <= self.source_degrees / 2:
             step = get_trapezoidal_step(degrees[-1])
             degrees.append(degrees[-1] + step)
 
-        degrees = np.array(degrees[:-2]) #last one is overshoot
-        return degrees, pixels_per_degree * degrees
+        return self.pixels_per_degree * np.array(degrees[:-2]) #last one is overshoot
 
-    def remap(self, image):
+    def remap(self, image, pyramid=None, fast=True):
         pass
+
+#TODO: pyramid class
 
 
 def mean_centre_radius_over_eccentricity(parvo=True):
@@ -116,6 +121,15 @@ class AngleEccentricityMap:
         # print(np.min(xy))
         # print(np.max(xy))
         return xy
+
+
+# print(image.shape)
+rgcm = RGCMap(2500, 70, .1, 100)
+# plt.plot(rgcm.radial_positions)
+# plt.plot(rgcm.angles)
+plt.plot(rgcm.radial_pixel_positions, rgcm.centre_radii)
+plt.plot(rgcm.radial_pixel_positions, rgcm.surround_radii)
+plt.show()
 
 
 # rgcm = RGCMap(256, show_fit=False)
