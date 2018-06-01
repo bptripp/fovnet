@@ -1,5 +1,6 @@
 import numpy as np
-import skimage
+from skimage.io import imread
+from skimage.viewer import ImageViewer
 from skimage.transform import warp_coords
 from skimage.filters import gaussian
 from scipy.ndimage import map_coordinates
@@ -7,14 +8,26 @@ from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surro
 
 
 class RGCMap():
-    def __init__(self, source_pixels, source_degrees, scale, angle_steps, right=True, parvo=True, centre=True):
+    """
+    Defines a map that warps images to approximate retinal ganglion cell density and receptive
+    field size.
+    """
+
+    def __init__(self, source_pixels, source_degrees, scale, angle_steps, right=True, parvo=True):
+        """
+        :param source_pixels: min of height and width of source image (pixels)
+        :param source_degrees: corresponding degrees visual angle
+        :param scale: linear density of result pixels (in radial direction) as a fraction of physiological value
+        :param angle_steps: number of discrete angles to sample in one half of visual field
+        :param right: right visual field if True, left otherwise
+        :param parvo: based on parvocellular system if True, magnocellular otherwise
+        """
+
         self.source_pixels = source_pixels
         self.source_degrees = source_degrees
         self.pixels_per_degree = source_pixels / source_degrees
         self.scale = scale
         self.density_function = get_density_fit(parvo)
-
-        print(self.pixels_per_degree)
 
         self.radial_pixel_positions = self.get_radial_positions()
         if right:
@@ -41,14 +54,22 @@ class RGCMap():
         # pixels/map_cell = (pixels/degree) / map_density(map_cells/degree)
 
         map_density = self.scale * self.density_function(eccentricity)
-        print('density {} map-density {} pixel-step {}'.format(self.density_function(eccentricity), map_density, self.pixels_per_degree / map_density))
         return self.pixels_per_degree / map_density
 
     def rf_step_degrees(self, eccentricity):
+        """
+        :param eccentricity: distance from fovea in degrees visual angle
+        :return: degrees visual angle between receptive-field centres in radial direction, at the given
+            eccentricity
+        """
         map_density = self.scale * self.density_function(eccentricity)
         return 1 / map_density
 
     def get_radial_positions(self):
+        """
+        :return: radial positions of receptive field centres (distance from image centre) in pixels
+        """
+
         def get_euler_step(eccentricity):
             return self.rf_step_degrees(eccentricity)
 
@@ -66,8 +87,25 @@ class RGCMap():
 
 
 class ImageSampler:
-    def __init__(self, input_shape, angles, radial_positions, radii, n_steps=5, min_blur=1):
-        #min_sigma to avoid aliasing at fine scale
+    """
+    Blurs and remaps images to model RF density and size.
+    """
+
+    def __init__(self, input_shape, angles, radial_positions, radii, n_steps=5, min_blur=.5):
+        """
+        :param input_shape: (height, width) of input images
+        :param angles: list of angles of receptive field centres
+        :param radial_positions: list of radial positions of receptive field centres (pixels from
+            image centre)
+        :param radii: list of radii of receptive fields; same length as radial_positions, as radius
+            is mainly a function of eccentricity
+        :param n_steps: receptive fields of various sizes are approximated in discrete steps by
+            sampling from copies of the image with different degrees of blur; this is the number of
+            different blurred images created; a larger number will result in less quantization error
+            in the RF size, and longer run time
+        :param min_blur: sigma of Gaussian blur of the sharpest image; some blur is needed to avoid
+            moire due to aliasing
+        """
 
         self.radial_positions = radial_positions
         self.radii = radii
@@ -97,6 +135,10 @@ class ImageSampler:
 
 
     def __call__(self, image):
+        """
+        :param image: input image
+        :return: image warped to approximate retinal ganglion cell density, etc.
+        """
         images = []
         for sigma in self.sigmas:
             image = gaussian(image, sigma)
@@ -113,6 +155,10 @@ class ImageSampler:
 
 
 def make_target_image(shape=(400,400,3)):
+    """
+    :param shape: (height, width, channels) of image to be created
+    :return: a target-like image of concentric rings
+    """
     image = np.zeros(shape, dtype='uint8')
     print(image.shape)
     for i in range(image.shape[0]):
@@ -128,27 +174,27 @@ def make_target_image(shape=(400,400,3)):
 
     return image
 
+
 class AngleEccentricityMap:
     """
     For use with warp_coords.
     """
 
     def __init__(self, input_shape, angles, radial_pixel_positions):
+        """
+        :param input_shape: (height, width) of source images
+        :param angles: list of angles at which to sample images
+        :param radial_pixel_positions: list of eccentricities (in pixels) at which to sample images
+        """
         self.input_shape = input_shape
         self.angles = angles
         self.radial_pixel_positions = radial_pixel_positions
-        print('# angles {};  # radial positions {}'.format(len(angles), len(radial_pixel_positions)))
 
     def __call__(self, xy):
         """
         :param xy: pixel locations in target image; each row (horizontal, vertical)
         :return: corresponding pixel locations in source image
         """
-        # foo = [y for y in xy[:,1]]
-        # print(foo)
-        # print(len(self.radial_pixel_positions))
-        # print(np.min(xy[:, 1]))
-        # print(np.max(xy[:, 1]))
         angles = [self.angles[len(self.angles) - 1 - int(x)] for x in xy[:,1]]
         eccentricities = [self.radial_pixel_positions[int(y)] for y in xy[:, 0]]
 
@@ -156,33 +202,12 @@ class AngleEccentricityMap:
         xy[:, 1] = self.input_shape[0] / 2 - eccentricities * np.sin(angles)
         return xy
 
-class DemoMap:
-    def __init__(self, input_shape, output_shape):
-        self.input_shape = input_shape
-        self.output_shape = output_shape
 
-    def __call__(self, xy):
-        print(self.input_shape)
-        angle = xy[:, 0] / self.output_shape[0] * 2 * np.pi # in radians
-        fraction_eccentricity = (np.exp(2 * xy[:, 1] / self.output_shape[1]) - 1) / np.exp(2)
-        eccentricity = fraction_eccentricity * (np.min(self.input_shape[:2]) / 2) # in pixels
-        xy[:, 0] = self.input_shape[1] / 2 + eccentricity * np.sin(angle)
-        xy[:, 1] = self.input_shape[0] / 2 - eccentricity * np.cos(angle)
-        # print(xy)
-        print('angle range: {} to {}'.format(min(angle), max(angle)))
-        print('eccentricity range: {} to {}'.format(min(eccentricity), max(eccentricity)))
-        # print(np.min(xy))
-        # print(np.max(xy))
-        return xy
-
-
-image = skimage.io.imread('../peggys-cove.jpg')
+image = imread('../peggys-cove.jpg')
 image = image[25:1525, 825:2325, :]
 
 print(image.shape)
 rgcm = RGCMap(np.min(image.shape[:2]), 70, .2, 100)
-# plt.plot(rgcm.radial_positions)
-# plt.plot(rgcm.angles)
 # plt.plot(rgcm.radial_pixel_positions, rgcm.centre_radii)
 # plt.plot(rgcm.radial_pixel_positions, rgcm.surround_radii)
 # plt.show()
@@ -190,11 +215,6 @@ rgcm = RGCMap(np.min(image.shape[:2]), 70, .2, 100)
 rfp = ImageSampler(image.shape[:2], rgcm.angles, rgcm.radial_pixel_positions, rgcm.centre_radii, n_steps=5, min_blur=.5)
 warped = rfp(image)
 
-
-# map = DemoMap(image.shape, (200, 200))
-# coords = warp_coords(map, (200,200,3))
-# warped = map_coordinates(image, coords)
-
-# viewer = skimage.viewer.ImageViewer(image)
-viewer = skimage.viewer.ImageViewer(warped)
+# viewer = ImageViewer(image)
+viewer = ImageViewer(warped)
 viewer.show()
