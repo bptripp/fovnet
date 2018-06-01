@@ -1,13 +1,8 @@
-import matplotlib.pyplot as plt
-from skimage.transform import warp, warp_coords
-from skimage.filters import gaussian
-from skimage import data
-from skimage.viewer import ImageViewer
-from scipy.ndimage import map_coordinates
 import numpy as np
-from scipy.interpolate import interp1d
-from skimage.transform import SimilarityTransform
-from fovnet.data.retina import get_RCG_radii
+import skimage
+from skimage.transform import warp_coords
+from skimage.filters import gaussian
+from scipy.ndimage import map_coordinates
 from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
 
@@ -69,17 +64,52 @@ class RGCMap():
 
         return self.pixels_per_degree * np.array(degrees[:-2]) #last one is overshoot
 
-    def remap(self, image, pyramid=None, fast=True):
-        pass
 
-#TODO: pyramid class
+class ImageSampler:
+    def __init__(self, input_shape, angles, radial_positions, radii, n_steps=5, min_blur=1):
+        #min_sigma to avoid aliasing at fine scale
+
+        self.radial_positions = radial_positions
+        self.radii = radii
+
+        blurs = np.linspace(np.min(radii), np.max(radii), n_steps)
+        blurs = np.maximum(min_blur, blurs)
+        self.blurs = list(set(blurs))
+        self.blurs.sort()
+
+        self.sigmas = [min_blur]
+        for i in range(1,len(blurs)):
+            self.sigmas.append(np.sqrt(blurs[i]**2 - blurs[i-1]**2))
+
+        # find index of blur stage closest to blur wanted at each radius
+        self.blur_indices = np.interp(radii, self.blurs, range(len(self.blurs)))
+        self.blur_indices = np.round(self.blur_indices).astype('int')
+
+        self.coords = []
+        for i in range(len(blurs)):
+            rp = [radial_positions[j] for j in range(len(radial_positions)) if self.blur_indices[j] == i]
+            map = AngleEccentricityMap(input_shape, angles, rp)
+            if len(rp) > 0:
+                wc = warp_coords(map, (len(angles), len(rp), 3))
+            else:
+                wc = None
+            self.coords.append(wc)
 
 
-def mean_centre_radius_over_eccentricity(parvo=True):
-    eccentricities, radii = get_RCG_radii(parvo, centre=True)
-    return np.mean(radii) / np.mean(eccentricities)
+    def __call__(self, image):
+        images = []
+        for sigma in self.sigmas:
+            image = gaussian(image, sigma)
+            images.append(image)
 
+        result_parts = []
+        for i in range(len(images)):
+            if self.coords[i] is not None:
+                result_part = map_coordinates(images[i], self.coords[i])
+                print(result_part.shape)
+                result_parts.append(result_part)
 
+        return np.concatenate(result_parts, axis=1)
 
 
 def make_target_image(shape=(400,400,3)):
@@ -98,12 +128,35 @@ def make_target_image(shape=(400,400,3)):
 
     return image
 
-image = data.chelsea()
-# image = make_target_image(image.shape)
-
-image = gaussian(image, 1.0)
-
 class AngleEccentricityMap:
+    """
+    For use with warp_coords.
+    """
+
+    def __init__(self, input_shape, angles, radial_pixel_positions):
+        self.input_shape = input_shape
+        self.angles = angles
+        self.radial_pixel_positions = radial_pixel_positions
+        print('# angles {};  # radial positions {}'.format(len(angles), len(radial_pixel_positions)))
+
+    def __call__(self, xy):
+        """
+        :param xy: pixel locations in target image; each row (horizontal, vertical)
+        :return: corresponding pixel locations in source image
+        """
+        # foo = [y for y in xy[:,1]]
+        # print(foo)
+        # print(len(self.radial_pixel_positions))
+        # print(np.min(xy[:, 1]))
+        # print(np.max(xy[:, 1]))
+        angles = [self.angles[len(self.angles) - 1 - int(x)] for x in xy[:,1]]
+        eccentricities = [self.radial_pixel_positions[int(y)] for y in xy[:, 0]]
+
+        xy[:, 0] = self.input_shape[1] / 2 + eccentricities * np.cos(angles)
+        xy[:, 1] = self.input_shape[0] / 2 - eccentricities * np.sin(angles)
+        return xy
+
+class DemoMap:
     def __init__(self, input_shape, output_shape):
         self.input_shape = input_shape
         self.output_shape = output_shape
@@ -123,32 +176,25 @@ class AngleEccentricityMap:
         return xy
 
 
-# print(image.shape)
-rgcm = RGCMap(2500, 70, .1, 100)
+image = skimage.io.imread('../peggys-cove.jpg')
+image = image[25:1525, 825:2325, :]
+
+print(image.shape)
+rgcm = RGCMap(np.min(image.shape[:2]), 70, .2, 100)
 # plt.plot(rgcm.radial_positions)
 # plt.plot(rgcm.angles)
-plt.plot(rgcm.radial_pixel_positions, rgcm.centre_radii)
-plt.plot(rgcm.radial_pixel_positions, rgcm.surround_radii)
-plt.show()
+# plt.plot(rgcm.radial_pixel_positions, rgcm.centre_radii)
+# plt.plot(rgcm.radial_pixel_positions, rgcm.surround_radii)
+# plt.show()
+
+rfp = ImageSampler(image.shape[:2], rgcm.angles, rgcm.radial_pixel_positions, rgcm.centre_radii, n_steps=5, min_blur=.5)
+warped = rfp(image)
 
 
-# rgcm = RGCMap(256, show_fit=False)
-# degrees, pixels = rgcm.get_radial_positions()
-# print(degrees)
-# print(pixels.shape)
-
-# map = AngleEccentricityMap(image.shape, (200, 200))
-# # coords = warp_coords(map, map.input_shape)
+# map = DemoMap(image.shape, (200, 200))
 # coords = warp_coords(map, (200,200,3))
-# # coords = warp_coords(map, image.shape)
-# # print(coords.shape)
-# print(image.shape)
-#
-# # before = time.time()
 # warped = map_coordinates(image, coords)
-# # print(time.time() - before)
-# print(warped.shape)
-#
-# # viewer = ImageViewer(image)
-# viewer = ImageViewer(warped)
-# viewer.show()
+
+# viewer = skimage.viewer.ImageViewer(image)
+viewer = skimage.viewer.ImageViewer(warped)
+viewer.show()
