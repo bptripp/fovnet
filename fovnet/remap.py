@@ -1,11 +1,13 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from skimage.io import imread
-from skimage.viewer import ImageViewer
 from skimage.transform import warp_coords
 from skimage.filters import gaussian
 from scipy.ndimage import map_coordinates
 from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
+# TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
+# TODO: image pyramid for blurs to save run time
 
 class RGCMap():
     """
@@ -13,9 +15,9 @@ class RGCMap():
     field size.
     """
 
-    def __init__(self, source_pixels, source_degrees, scale, angle_steps, right=True, parvo=True):
+    def __init__(self, input_shape, source_degrees, scale, angle_steps=None, right=True, parvo=True):
         """
-        :param source_pixels: min of height and width of source image (pixels)
+        :param input_shape: (height, width) of source image (pixels)
         :param source_degrees: corresponding degrees visual angle
         :param scale: linear density of result pixels (in radial direction) as a fraction of physiological value
         :param angle_steps: number of discrete angles to sample in one half of visual field
@@ -23,13 +25,20 @@ class RGCMap():
         :param parvo: based on parvocellular system if True, magnocellular otherwise
         """
 
-        self.source_pixels = source_pixels
+        assert len(input_shape) == 2
+
+        self.source_pixels = np.min(input_shape)
         self.source_degrees = source_degrees
-        self.pixels_per_degree = source_pixels / source_degrees
+        self.pixels_per_degree = self.source_pixels / source_degrees
         self.scale = scale
         self.density_function = get_density_fit(parvo)
 
         self.radial_pixel_positions = self.get_radial_positions()
+
+        if angle_steps is None:
+            # circumference of half circle is pi rad, so there should be pi time as many steps around
+            angle_steps = int(np.round(np.pi * len(self.radial_pixel_positions)))
+
         if right:
             self.angles = -np.pi/2 + np.linspace(0, np.pi, angle_steps)
         else:
@@ -42,6 +51,22 @@ class RGCMap():
         surround_radius_fit = get_surround_radius_fit()
         self.surround_radii = self.pixels_per_degree \
             * surround_radius_fit(self.radial_pixel_positions / self.pixels_per_degree)
+
+        self.centre_sampler = ImageSampler(
+            input_shape,
+            self.angles,
+            self.radial_pixel_positions,
+            self.centre_radii,
+            n_steps=5,
+            min_blur=.5)
+
+        self.surround_sampler = ImageSampler(
+            input_shape,
+            self.angles,
+            self.radial_pixel_positions,
+            self.surround_radii,
+            n_steps=15,
+            min_blur=.5)
 
     def pixels_between_rfs(self, eccentricity):
         """
@@ -115,7 +140,7 @@ class ImageSampler:
         self.blurs = list(set(blurs))
         self.blurs.sort()
 
-        self.sigmas = [min_blur]
+        self.sigmas = [blurs[0]]
         for i in range(1,len(blurs)):
             self.sigmas.append(np.sqrt(blurs[i]**2 - blurs[i-1]**2))
 
@@ -203,18 +228,35 @@ class AngleEccentricityMap:
         return xy
 
 
-image = imread('../peggys-cove.jpg')
-image = image[25:1525, 825:2325, :]
+if __name__ == '__main__':
+    image = imread('../peggys-cove.jpg')
+    image = image[25:1525, 825:2325, :]
 
-print(image.shape)
-rgcm = RGCMap(np.min(image.shape[:2]), 70, .2, 100)
-# plt.plot(rgcm.radial_pixel_positions, rgcm.centre_radii)
-# plt.plot(rgcm.radial_pixel_positions, rgcm.surround_radii)
-# plt.show()
+    rgcm = RGCMap(image.shape[:2], 70, .3, right=True)
 
-rfp = ImageSampler(image.shape[:2], rgcm.angles, rgcm.radial_pixel_positions, rgcm.centre_radii, n_steps=5, min_blur=.5)
-warped = rfp(image)
+    warped_faster = rgcm.centre_sampler(image)
 
-# viewer = ImageViewer(image)
-viewer = ImageViewer(warped)
-viewer.show()
+    slower_sampler = ImageSampler(
+        image.shape[:2],
+        rgcm.angles,
+        rgcm.radial_pixel_positions,
+        rgcm.centre_radii,
+        n_steps=50,
+        min_blur=.5)
+    warped_slower = slower_sampler(image)
+
+    plt.subplot(1,3,1)
+    plt.imshow(warped_faster)
+    plt.axis('off')
+    plt.title('5 blur steps')
+    plt.subplot(1,3,2)
+    plt.imshow(warped_slower)
+    plt.axis('off')
+    plt.title('50 blur steps')
+    plt.subplot(1,3,3)
+    plt.imshow(10*(warped_faster - warped_slower) + 0.5)
+    plt.axis('off')
+    plt.title('10x difference')
+    plt.tight_layout()
+    plt.show()
+
