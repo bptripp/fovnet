@@ -9,6 +9,7 @@ from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surro
 # TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
 # TODO: image pyramid for blurs to save run time
 
+
 class RGCMap():
     """
     Defines a map that warps images to approximate retinal ganglion cell density and receptive
@@ -58,7 +59,7 @@ class RGCMap():
             self.radial_pixel_positions,
             self.centre_radii,
             n_steps=5,
-            min_blur=.5)
+            min_blur=.25)
 
         self.surround_sampler = ImageSampler(
             input_shape,
@@ -66,7 +67,7 @@ class RGCMap():
             self.radial_pixel_positions,
             self.surround_radii,
             n_steps=15,
-            min_blur=.5)
+            min_blur=.25)
 
     def pixels_between_rfs(self, eccentricity):
         """
