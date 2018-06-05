@@ -255,7 +255,7 @@ if __name__ == '__main__':
     plt.axis('off')
     plt.title('50 blur steps')
     plt.subplot(1,3,3)
-    plt.imshow(10*(warped_faster - warped_slower) + 0.5)
+    plt.imshow(np.clip(10*(warped_faster - warped_slower) + 0.5, 0, 1))
     plt.axis('off')
     plt.title('10x difference')
     plt.tight_layout()
