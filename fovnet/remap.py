@@ -4,7 +4,7 @@ from skimage.io import imread
 from skimage.transform import warp_coords
 from skimage.filters import gaussian
 from scipy.ndimage import map_coordinates
-from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
+from data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
 # TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
 # TODO: image pyramid for blurs to save run time
@@ -246,6 +246,7 @@ if __name__ == '__main__':
         min_blur=.5)
     warped_slower = slower_sampler(image)
 
+    plt.ion()  # turn on interactive mode (JO)
     plt.subplot(1,3,1)
     plt.imshow(warped_faster)
     plt.axis('off')
