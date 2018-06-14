@@ -41,7 +41,7 @@ class RGCMap():
             angle_steps = int(np.round(np.pi * len(self.radial_pixel_positions)))
 
         if right:
-            self.angles = -np.pi/2 + np.linspace(0, np.pi, angle_steps)
+            self.angles = np.pi/2 + np.linspace(0, 2.*np.pi, angle_steps)
         else:
             self.angles = 3*np.pi/2 - np.linspace(0, np.pi, angle_steps)
 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     image = imread('../peggys-cove.jpg')
     image = image[25:1525, 825:2325, :]
 
-    rgcm = RGCMap(image.shape[:2], 70, .3, right=True)
+    rgcm = RGCMap(image.shape[:2], 70, .3, angle_steps=512, right=True)
 
     warped_faster = rgcm.centre_sampler(image)
 
@@ -244,21 +244,36 @@ if __name__ == '__main__':
         rgcm.centre_radii,
         n_steps=50,
         min_blur=.5)
-    warped_slower = slower_sampler(image)
+    #warped_slower = slower_sampler(image)
 
+    plt.figure(1)
     plt.ion()  # turn on interactive mode (JO)
+    plt.clf()
     plt.subplot(1,3,1)
     plt.imshow(warped_faster)
     plt.axis('off')
     plt.title('5 blur steps')
     plt.subplot(1,3,2)
-    plt.imshow(warped_slower)
+    #plt.imshow(warped_slower)
     plt.axis('off')
     plt.title('50 blur steps')
     plt.subplot(1,3,3)
-    plt.imshow(np.clip(10*(warped_faster - warped_slower) + 0.5, 0, 1))
+    #plt.imshow(np.clip(10*(warped_faster - warped_slower) + 0.5, 0, 1))
     plt.axis('off')
     plt.title('10x difference')
     plt.tight_layout()
     plt.show()
+
+    from matplotlib.patches import Circle
+    fig = plt.figure(2)
+    fig.clf()
+    plt.imshow(image)
+    ax = plt.gca()
+    for blurs in slower_sampler.coords:
+    	plt.plot(blurs[1,:,:,0], blurs[0,:,:,0], 'r.', markersize=0.1)
+
+    ax.add_patch(Circle((1000,400),radius=100,edgecolor='black'))
+
+
+
 
