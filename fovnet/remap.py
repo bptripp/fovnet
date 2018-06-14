@@ -272,7 +272,7 @@ if __name__ == '__main__':
     for blurs in slower_sampler.coords:
     	plt.plot(blurs[1,:,:,0], blurs[0,:,:,0], 'r.', markersize=0.1)
 
-    ax.add_patch(Circle((1000,400),radius=100,edgecolor='black'))
+    #ax.add_patch(Circle((1000,400),radius=100,edgecolor='black'))
 
 
 
