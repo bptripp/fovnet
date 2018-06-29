@@ -4,13 +4,65 @@ from skimage.io import imread
 from skimage.transform import warp_coords
 from skimage.filters import gaussian
 from scipy.ndimage import map_coordinates
-from data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
+from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
 # TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
 # TODO: image pyramid for blurs to save run time
 
+class LGN:
+    """
+    A model of feature maps in lateral geniculate nucleus. Major response categories include:
 
-class RGCMap():
+        parvocellular:  red-on centre / green-off surround
+                        green-on centre / red-off surround
+                        green-off centre / red-on surround
+                        red-off centre / green-on surround
+        magnocellular:  on centre / off surround
+                        off centre / off surround
+        koniocellular:  blue-on centre / red-green-off surround
+
+    There are also koniocellular blue-off centre cells, but they are less uncommon.
+
+    This model focuses on input to the ventral visual stream, which is mainly from the parvo and konio
+    systems. For simplicity and to reduce computation time, we will take konio blue-on centre cells
+    to have the same RF sizes and density as each category of parvo cells. The RF size assumption is
+    partly justified by the wide range of konio RF sizes, although the mean RF size is relatively large.
+    The density is probably an over-estimate by at least 2x, but it simplifies the model by allowing
+    all colour channels to have the same spatial resolution (image size).
+
+    The four parvocellular channels above are in two pairs of opposites. To simplify, we only include
+    red-on centre / green-off surround and green-on centre / red-off surround, and we add an offset to
+    avoid rectifying. Except in case of clipping, these two channels contain the same information as
+    the four actual channels. So we end up with something similar to an RGB representation, but with
+    surrounds. The centres are in fact red-on, green-on, and blue-on.
+
+    Sources:
+    [1] S. Chatterjee and E. M. Callaway, “Parallel colour-opponent pathways to primary visual cortex,”
+    Nature, vol. 426, no. 6967, pp. 668–671, 2003.
+    [2] R. L. De Valois, N. P. Cottaris, S. D. Elfar, L. E. Mahon, and J. A. Wilson, “Some transformations
+    of color information from lateral geniculate nucleus to striate cortex.,” PNAS, vol. 97, no. 9, pp.
+    4997–5002, 2000.
+    [3] V. Casagrande, “A third parallel visual pathway to primate area V1,” Trends Neurosci., vol. 17,
+    no. 7, pp. 305–310, 1994.
+    [4] E. Kaplan, “The M, P and K pathways of the Primate Visual System revisited,” New Vis. Neurosci.
+    (J.Werner L. Chalupa, Eds), MIT Press, no. August, pp. 215–226, 2012.
+    """
+    def __init__(self, input_shape, source_degrees, right=True):
+        parvo_scale = .25**.5 # each parvo RF type makes up 25% of total parvo cells
+        self.map = RGCMap(input_shape, source_degrees, parvo_scale, parvo=True)
+
+    def process(self, image):
+        centre_image = self.map.centre_sampler(image)
+        surround_image = self.map.surround_sampler(image)
+
+        result = np.zeros_like(centre_image)
+        result[:,:,0] = centre_image[:,:,0] - surround_image[:,:,1] + .5
+        result[:,:,1] = centre_image[:,:,1] - surround_image[:,:,0] + .5
+        result[:,:,2] = centre_image[:,:,2] - (surround_image[:,:,0] + surround_image[:,:,1]) / 2 + .5
+        return result
+
+
+class RGCMap:
     """
     Defines a map that warps images to approximate retinal ganglion cell density and receptive
     field size.
@@ -232,6 +284,12 @@ class AngleEccentricityMap:
 if __name__ == '__main__':
     image = imread('../peggys-cove.jpg')
     image = image[25:1525, 825:2325, :]
+
+    # lgn = LGN(image.shape[:2], 70, right=True)
+    # result = lgn.process(image)
+    # print(result)
+    # plt.imshow(result)
+    # plt.show()
 
     rgcm = RGCMap(image.shape[:2], 70, .3, angle_steps=512, right=True)
 
