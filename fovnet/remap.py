@@ -62,7 +62,8 @@ class LGN:
         return result
 
 
-class RGCMap:
+
+class RGCMap():
     """
     Defines a map that warps images to approximate retinal ganglion cell density and receptive
     field size.
@@ -302,7 +303,20 @@ if __name__ == '__main__':
         rgcm.centre_radii,
         n_steps=50,
         min_blur=.5)
+
+    lpm_angles = rgcm.angles
+    rho = np.arange(0., 255, 1.)
+    lpm_radial_pixel_positions = 0.54*np.exp(rho/35.32)
+    lp_sampler = ImageSampler(
+    	image.shape[:2],
+    	lpm_angles,
+    	lpm_radial_pixel_positions,
+    	rgcm.centre_radii,
+    	n_steps=1,
+    	min_blur=0.5)
+
     #warped_slower = slower_sampler(image)
+    lp = lp_sampler(image)
 
     plt.figure(1)
     plt.ion()  # turn on interactive mode (JO)
@@ -312,7 +326,7 @@ if __name__ == '__main__':
     plt.axis('off')
     plt.title('5 blur steps')
     plt.subplot(1,3,2)
-    #plt.imshow(warped_slower)
+    plt.imshow(lp)
     plt.axis('off')
     plt.title('50 blur steps')
     plt.subplot(1,3,3)
@@ -330,8 +344,23 @@ if __name__ == '__main__':
     for blurs in slower_sampler.coords:
     	plt.plot(blurs[1,:,:,0], blurs[0,:,:,0], 'r.', markersize=0.1)
 
-    ax.add_patch(Circle((1000,400),radius=100,edgecolor=None))
+    #ax.add_patch(Circle((1000,400),radius=100,edgecolor=None,alpha=0.5))
+
+    # Least-squares fit of slower_sampler.radial_positions curve.
+    m = 0
+    Y = np.log(slower_sampler.radial_positions[m:])
+    N = len(Y)
+    X = np.ones([N,2])
+    X[:,1] = range(N)
+    C = np.linalg.lstsq(X, Y)[0]
+    y = np.exp(X.dot(C))
+
+    plt.figure(3)
+    plt.clf()
+    plt.plot(slower_sampler.radial_positions)
+    plt.plot(m+X[:,1],y)
 
 
 
 
+#
