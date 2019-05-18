@@ -9,59 +9,6 @@ from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surro
 # TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
 # TODO: image pyramid for blurs to save run time
 
-class LGN:
-    """
-    A model of feature maps in lateral geniculate nucleus. Major response categories include:
-
-        parvocellular:  red-on centre / green-off surround
-                        green-on centre / red-off surround
-                        green-off centre / red-on surround
-                        red-off centre / green-on surround
-        magnocellular:  on centre / off surround
-                        off centre / off surround
-        koniocellular:  blue-on centre / red-green-off surround
-
-    There are also koniocellular blue-off centre cells, but they are less uncommon.
-
-    This model focuses on input to the ventral visual stream, which is mainly from the parvo and konio
-    systems. For simplicity and to reduce computation time, we will take konio blue-on centre cells
-    to have the same RF sizes and density as each category of parvo cells. The RF size assumption is
-    partly justified by the wide range of konio RF sizes, although the mean RF size is relatively large.
-    The density is probably an over-estimate by at least 2x, but it simplifies the model by allowing
-    all colour channels to have the same spatial resolution (image size).
-
-    The four parvocellular channels above are in two pairs of opposites. To simplify, we only include
-    red-on centre / green-off surround and green-on centre / red-off surround, and we add an offset to
-    avoid rectifying. Except in case of clipping, these two channels contain the same information as
-    the four actual channels. So we end up with something similar to an RGB representation, but with
-    surrounds. The centres are in fact red-on, green-on, and blue-on.
-
-    Sources:
-    [1] S. Chatterjee and E. M. Callaway, “Parallel colour-opponent pathways to primary visual cortex,”
-    Nature, vol. 426, no. 6967, pp. 668–671, 2003.
-    [2] R. L. De Valois, N. P. Cottaris, S. D. Elfar, L. E. Mahon, and J. A. Wilson, “Some transformations
-    of color information from lateral geniculate nucleus to striate cortex.,” PNAS, vol. 97, no. 9, pp.
-    4997–5002, 2000.
-    [3] V. Casagrande, “A third parallel visual pathway to primate area V1,” Trends Neurosci., vol. 17,
-    no. 7, pp. 305–310, 1994.
-    [4] E. Kaplan, “The M, P and K pathways of the Primate Visual System revisited,” New Vis. Neurosci.
-    (J.Werner L. Chalupa, Eds), MIT Press, no. August, pp. 215–226, 2012.
-    """
-    def __init__(self, input_shape, source_degrees, right=True):
-        parvo_scale = .25**.5 # each parvo RF type makes up 25% of total parvo cells
-        self.map = RGCMap(input_shape, source_degrees, parvo_scale, parvo=True)
-
-    def process(self, image):
-        centre_image = self.map.centre_sampler(image)
-        surround_image = self.map.surround_sampler(image)
-
-        result = np.zeros_like(centre_image)
-        result[:,:,0] = centre_image[:,:,0] - surround_image[:,:,1] + .5
-        result[:,:,1] = centre_image[:,:,1] - surround_image[:,:,0] + .5
-        result[:,:,2] = centre_image[:,:,2] - (surround_image[:,:,0] + surround_image[:,:,1]) / 2 + .5
-        return result
-
-
 
 class RGCMap():
     """
@@ -304,63 +251,61 @@ if __name__ == '__main__':
         n_steps=50,
         min_blur=.5)
 
-    lpm_angles = rgcm.angles
-    rho = np.arange(0., 255, 1.)
-    lpm_radial_pixel_positions = 0.54*np.exp(rho/35.32)
-    lp_sampler = ImageSampler(
-    	image.shape[:2],
-    	lpm_angles,
-    	lpm_radial_pixel_positions,
-    	rgcm.centre_radii,
-    	n_steps=1,
-    	min_blur=0.5)
+    # lpm_angles = rgcm.angles
+    # rho = np.arange(0., 255, 1.)
+    # lpm_radial_pixel_positions = 0.54*np.exp(rho/35.32)
+    # lp_sampler = ImageSampler(
+    # 	image.shape[:2],
+    # 	lpm_angles,
+    # 	lpm_radial_pixel_positions,
+    # 	rgcm.centre_radii,
+    # 	n_steps=1,
+    # 	min_blur=0.5)
 
-    #warped_slower = slower_sampler(image)
-    lp = lp_sampler(image)
+    warped_slower = slower_sampler(image)
+    # lp = lp_sampler(image)
 
     plt.figure(1)
-    plt.ion()  # turn on interactive mode (JO)
+    # plt.ion()  # turn on interactive mode (JO)
     plt.clf()
     plt.subplot(1,3,1)
     plt.imshow(warped_faster)
     plt.axis('off')
     plt.title('5 blur steps')
     plt.subplot(1,3,2)
-    plt.imshow(lp)
+    # plt.imshow(lp)
+    plt.imshow(warped_slower)
+    # plt.imshow(warped_faster)
     plt.axis('off')
     plt.title('50 blur steps')
     plt.subplot(1,3,3)
-    #plt.imshow(np.clip(10*(warped_faster - warped_slower) + 0.5, 0, 1))
+    plt.imshow(np.clip(10*(warped_faster - warped_slower) + 0.5, 0, 1))
     plt.axis('off')
     plt.title('10x difference')
     plt.tight_layout()
     plt.show()
 
-    from matplotlib.patches import Circle
-    fig = plt.figure(2)
-    fig.clf()
-    plt.imshow(image)
-    ax = plt.gca()
-    for blurs in slower_sampler.coords:
-    	plt.plot(blurs[1,:,:,0], blurs[0,:,:,0], 'r.', markersize=0.1)
+    # from matplotlib.patches import Circle
+    # fig = plt.figure(2)
+    # fig.clf()
+    # plt.imshow(image)
+    # ax = plt.gca()
+    # for blurs in slower_sampler.coords:
+    # 	plt.plot(blurs[1,:,:,0], blurs[0,:,:,0], 'r.', markersize=0.1)
+    #
+    # #ax.add_patch(Circle((1000,400),radius=100,edgecolor=None,alpha=0.5))
+    #
+    # # Least-squares fit of slower_sampler.radial_positions curve.
+    # m = 0
+    # Y = np.log(slower_sampler.radial_positions[m:])
+    # N = len(Y)
+    # X = np.ones([N,2])
+    # X[:,1] = range(N)
+    # C = np.linalg.lstsq(X, Y)[0]
+    # y = np.exp(X.dot(C))
+    #
+    # plt.figure(3)
+    # plt.clf()
+    # plt.plot(slower_sampler.radial_positions)
+    # plt.plot(m+X[:,1],y)
 
-    #ax.add_patch(Circle((1000,400),radius=100,edgecolor=None,alpha=0.5))
-
-    # Least-squares fit of slower_sampler.radial_positions curve.
-    m = 0
-    Y = np.log(slower_sampler.radial_positions[m:])
-    N = len(Y)
-    X = np.ones([N,2])
-    X[:,1] = range(N)
-    C = np.linalg.lstsq(X, Y)[0]
-    y = np.exp(X.dot(C))
-
-    plt.figure(3)
-    plt.clf()
-    plt.plot(slower_sampler.radial_positions)
-    plt.plot(m+X[:,1],y)
-
-
-
-
-#
