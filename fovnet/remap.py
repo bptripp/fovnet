@@ -314,7 +314,7 @@ class AngleEccentricityMap:
 
 
 if __name__ == '__main__':
-    image = imread('../peggys-cove.jpg')
+    image = imread('./peggys-cove.jpg')
     image = image[25:1525, 825:2325, :]
 
     from timeit import default_timer as timer
