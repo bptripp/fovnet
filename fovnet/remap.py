@@ -2,8 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage.io import imread
 from skimage.transform import warp_coords
+from skimage.transform.pyramids import pyramid_gaussian
 from skimage.filters import gaussian
 from scipy.ndimage import map_coordinates
+import torch
+from torch.nn.functional import grid_sample, interpolate
 from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
 # TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
@@ -58,7 +61,7 @@ class RGCMap():
             self.angles,
             self.radial_pixel_positions,
             self.centre_radii,
-            n_steps=5,
+            n_steps=3,
             min_blur=.25)
 
         self.surround_sampler = ImageSampler(
@@ -159,7 +162,6 @@ class ImageSampler:
                 wc = None
             self.coords.append(wc)
 
-
     def __call__(self, image):
         """
         :param image: input image
@@ -178,6 +180,88 @@ class ImageSampler:
                 result_parts.append(result_part)
 
         return np.concatenate(result_parts, axis=1)
+
+
+class PyTorchImageSampler():
+    """
+    Blurs and remaps images to model RF density and size.
+    """
+
+    def __init__(self, input_shape, angles, radial_positions, radii, num_scales=4):
+        self.radial_positions = radial_positions
+        self.radii = radii
+
+        # self.num_scales = num_scales
+        self.scales = [2 ** -i for i in range(num_scales)]
+        self.blurs = [1/scale for scale in self.scales]
+
+        # find index of blur stage closest to blur wanted at each radius
+        self.blur_indices = np.interp(radii, self.blurs, range(len(self.blurs)))
+        self.blur_indices = np.round(self.blur_indices).astype('int')
+
+        self.grids = [] #grid_sample wants n, h_out, w_out, 2
+        for i in range(len(self.blurs)):
+            rp = [radial_positions[j] for j in range(len(radial_positions)) if self.blur_indices[j] == i]
+            map = AngleEccentricityMap(input_shape, angles, rp)
+            if len(rp) > 0:
+                grid = np.zeros((1, len(angles), len(rp), 2))
+                for i in range(len(angles)):
+                    for j in range(len(rp)):
+                        grid[0,i,j,:] = map(np.array([(j,i)]))
+
+                # grid values are supposed to be in range -1 to 1
+                grid[0,:,:,0] = -1 + grid[0,:,:,0] * 2/input_shape[1]
+                grid[0,:,:,1] = -1 + grid[0,:,:,1] * 2/input_shape[0]
+            else:
+                grid = None
+
+            self.grids.append(grid)
+            self.mode = 'bilinear'
+
+    def __call__(self, image):
+        """
+        :param image: input image
+        :return: image warped to approximate retinal ganglion cell density, etc.
+        """
+        if image.dtype == np.uint8:
+            image = image.astype(np.double) / 255
+
+        image = gaussian(image, .5) # antialiasing filter
+
+        # make image pyramid with torch
+        image = _image_to_torch(image)
+        image = np.expand_dims(image, 0) # torch expects images in batches
+        image = torch.tensor(image)
+        pyramid = [interpolate(image, scale_factor=scale) for scale in self.scales]
+
+        # make image pyramid with skimage (slower)
+        # pyramid = pyramid_gaussian(image, max_layer=3)
+        # pyramid = [p for p in pyramid]
+        # pyramid = [_image_to_torch(image) for image in pyramid]
+        # pyramid = [np.expand_dims(image, 0) for image in pyramid] # torch expects images in batches
+        # pyramid = [torch.tensor(image) for image in pyramid]
+
+        result_parts = []
+        for grid, image in zip(self.grids, pyramid):
+            if grid is not None:
+                grid = torch.tensor(grid)
+                result_part = grid_sample(image, grid, mode=self.mode)
+                result_part = _image_from_torch(result_part[0,:,:,:]) # only one image in the batch
+                print(result_part.shape)
+                result_parts.append(result_part)
+
+        result = np.concatenate(result_parts, axis=1)
+        return result
+
+
+def _image_to_torch(image):
+    return np.moveaxis(image, 2, 0)
+
+
+def _image_from_torch(image):
+    if isinstance(image, torch.Tensor):
+        image = image.detach().numpy()
+    return np.moveaxis(image, 0, 2)
 
 
 def make_target_image(shape=(400,400,3)):
@@ -233,23 +317,34 @@ if __name__ == '__main__':
     image = imread('../peggys-cove.jpg')
     image = image[25:1525, 825:2325, :]
 
-    # lgn = LGN(image.shape[:2], 70, right=True)
-    # result = lgn.process(image)
-    # print(result)
-    # plt.imshow(result)
-    # plt.show()
+    from timeit import default_timer as timer
 
     rgcm = RGCMap(image.shape[:2], 70, .3, angle_steps=512, right=True)
 
+    start = timer()
     warped_faster = rgcm.centre_sampler(image)
+    end = timer()
+    print('skimage took {}s'.format(end - start))
 
-    slower_sampler = ImageSampler(
+    pytorch_sampler = PyTorchImageSampler(
         image.shape[:2],
         rgcm.angles,
         rgcm.radial_pixel_positions,
         rgcm.centre_radii,
-        n_steps=50,
-        min_blur=.5)
+    )
+    start = timer()
+    warped_pytorch = pytorch_sampler(image)
+    end = timer()
+    print('pytorch took {}s'.format(end - start))
+
+    # slower_sampler = ImageSampler(
+    #     image.shape[:2],
+    #     rgcm.angles,
+    #     rgcm.radial_pixel_positions,
+    #     rgcm.centre_radii,
+    #     n_steps=20,
+    #     min_blur=.5)
+    # warped_slower = slower_sampler(image)
 
     # lpm_angles = rgcm.angles
     # rho = np.arange(0., 255, 1.)
@@ -261,8 +356,6 @@ if __name__ == '__main__':
     # 	rgcm.centre_radii,
     # 	n_steps=1,
     # 	min_blur=0.5)
-
-    warped_slower = slower_sampler(image)
     # lp = lp_sampler(image)
 
     plt.figure(1)
@@ -271,15 +364,13 @@ if __name__ == '__main__':
     plt.subplot(1,3,1)
     plt.imshow(warped_faster)
     plt.axis('off')
-    plt.title('5 blur steps')
+    plt.title('skimage (3 blur steps)')
     plt.subplot(1,3,2)
-    # plt.imshow(lp)
-    plt.imshow(warped_slower)
-    # plt.imshow(warped_faster)
+    plt.imshow(warped_pytorch)
     plt.axis('off')
-    plt.title('50 blur steps')
+    plt.title('PyTorch (3 scales)')
     plt.subplot(1,3,3)
-    plt.imshow(np.clip(10*(warped_faster - warped_slower) + 0.5, 0, 1))
+    plt.imshow(np.clip(10*(warped_faster - warped_pytorch) + 0.5, 0, 1))
     plt.axis('off')
     plt.title('10x difference')
     plt.tight_layout()
