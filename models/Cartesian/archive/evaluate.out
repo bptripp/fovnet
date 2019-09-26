@@ -1,0 +1,50 @@
+=> creating model 'densenet121'
+=> loading checkpoint 'model_best.pth.tar'
+=> loaded checkpoint 'model_best.pth.tar' (epoch 70)
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/dask/config.py:168: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
+  data = yaml.load(f.read()) or {}
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/envs/py37/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+Test: [  0/196]	Time 15.491 (15.491)	Loss 1.3700e+00 (1.3700e+00)	Acc@1  66.41 ( 66.41)	Acc@5  87.89 ( 87.89)
+Test: [ 10/196]	Time  0.174 ( 2.487)	Loss 2.2529e+00 (1.6877e+00)	Acc@1  50.78 ( 61.93)	Acc@5  74.22 ( 82.60)
+Test: [ 20/196]	Time  6.079 ( 2.274)	Loss 1.8782e+00 (1.6933e+00)	Acc@1  62.50 ( 61.50)	Acc@5  77.34 ( 82.07)
+Test: [ 30/196]	Time  0.371 ( 2.003)	Loss 1.5111e+00 (1.6573e+00)	Acc@1  62.50 ( 62.35)	Acc@5  86.33 ( 82.41)
+Test: [ 40/196]	Time  5.884 ( 1.985)	Loss 2.1039e+00 (1.7399e+00)	Acc@1  44.14 ( 59.24)	Acc@5  80.08 ( 81.82)
+Test: [ 50/196]	Time  0.369 ( 1.893)	Loss 1.1286e+00 (1.7124e+00)	Acc@1  70.31 ( 59.11)	Acc@5  90.23 ( 82.48)
+Test: [ 60/196]	Time  3.280 ( 1.902)	Loss 2.0295e+00 (1.7056e+00)	Acc@1  52.34 ( 59.23)	Acc@5  79.69 ( 82.70)
+Test: [ 70/196]	Time  0.225 ( 1.882)	Loss 1.9981e+00 (1.7000e+00)	Acc@1  57.42 ( 59.62)	Acc@5  76.17 ( 82.69)
+Test: [ 80/196]	Time  3.769 ( 1.885)	Loss 3.2146e+00 (1.7484e+00)	Acc@1  33.20 ( 58.94)	Acc@5  59.77 ( 81.99)
+Test: [ 90/196]	Time  0.212 ( 1.860)	Loss 3.9945e+00 (1.8766e+00)	Acc@1  21.48 ( 56.83)	Acc@5  42.19 ( 79.96)
+Test: [100/196]	Time  4.052 ( 1.855)	Loss 3.0982e+00 (1.9799e+00)	Acc@1  30.86 ( 54.95)	Acc@5  59.77 ( 78.23)
+Test: [110/196]	Time  0.305 ( 1.844)	Loss 2.4394e+00 (2.0508e+00)	Acc@1  49.22 ( 53.86)	Acc@5  70.31 ( 77.03)
+Test: [120/196]	Time  4.857 ( 1.853)	Loss 3.3181e+00 (2.1206e+00)	Acc@1  35.94 ( 52.81)	Acc@5  55.86 ( 75.86)
+Test: [130/196]	Time  2.294 ( 1.840)	Loss 2.4704e+00 (2.1774e+00)	Acc@1  50.78 ( 51.84)	Acc@5  69.53 ( 74.95)
+Test: [140/196]	Time  2.736 ( 1.835)	Loss 2.7911e+00 (2.2293e+00)	Acc@1  39.06 ( 51.01)	Acc@5  64.45 ( 74.07)
+Test: [150/196]	Time  3.327 ( 1.831)	Loss 3.0788e+00 (2.2849e+00)	Acc@1  38.67 ( 50.31)	Acc@5  61.33 ( 73.12)
+Test: [160/196]	Time  2.273 ( 1.821)	Loss 2.7508e+00 (2.3303e+00)	Acc@1  40.62 ( 49.58)	Acc@5  65.62 ( 72.33)
+Test: [170/196]	Time  3.783 ( 1.819)	Loss 2.0207e+00 (2.3674e+00)	Acc@1  53.52 ( 48.94)	Acc@5  78.12 ( 71.73)
+Test: [180/196]	Time  3.157 ( 1.814)	Loss 2.3498e+00 (2.3942e+00)	Acc@1  43.36 ( 48.45)	Acc@5  73.83 ( 71.33)
+Test: [190/196]	Time  2.831 ( 1.807)	Loss 1.9563e+00 (2.3808e+00)	Acc@1  55.08 ( 48.64)	Acc@5  80.47 ( 71.61)
+ * Acc@1 48.952 Acc@5 71.793
