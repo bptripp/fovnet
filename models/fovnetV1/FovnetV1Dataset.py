@@ -45,7 +45,7 @@ class FovnetV1Dataset(BaseDataset):
         )
         del rgcm
         
-    def custom_transforms(self, image, center):
+    def custom_transform(self, image, center):
         #Random Horizontal flip
         if random.random() < 0.5:
             hFlip = True

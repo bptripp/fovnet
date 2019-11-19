@@ -7,7 +7,7 @@ from skimage.filters import gaussian
 from scipy.ndimage import map_coordinates
 import torch
 from torch.nn.functional import grid_sample, interpolate
-from fovnet.data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
+from data.retina import get_density_fit, get_centre_radius_fit, get_surround_radius_fit
 
 # TODO: if scale is too low, blur is insufficient for inter-pixel spacing; not clear whether this should be changed
 # TODO: image pyramid for blurs to save run time
@@ -176,7 +176,6 @@ class ImageSampler:
         for i in range(len(images)):
             if self.coords[i] is not None:
                 result_part = map_coordinates(images[i], self.coords[i])
-                print(result_part.shape)
                 result_parts.append(result_part)
 
         return np.concatenate(result_parts, axis=1)
@@ -247,7 +246,6 @@ class PyTorchImageSampler():
                 grid = torch.tensor(grid)
                 result_part = grid_sample(image, grid, mode=self.mode)
                 result_part = _image_from_torch(result_part[0,:,:,:]) # only one image in the batch
-                print(result_part.shape)
                 result_parts.append(result_part)
 
         result = np.concatenate(result_parts, axis=1)
@@ -270,7 +268,6 @@ def make_target_image(shape=(400,400,3)):
     :return: a target-like image of concentric rings
     """
     image = np.zeros(shape, dtype='uint8')
-    print(image.shape)
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
             radius = np.sqrt((i - shape[0]/2)**2 + (j - shape[1]/2)**2)

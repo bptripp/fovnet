@@ -27,7 +27,7 @@ class FovnetV2Dataset(BaseDataset):
                 on a sample.
         """
         
-        super(CartesianDataset, self).__init__(
+        super(FovnetV2Dataset, self).__init__(
             root_dir=root_dir, 
             centers_dir=centers_dir, 
             transform=transform, 

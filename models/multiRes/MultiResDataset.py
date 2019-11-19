@@ -15,7 +15,7 @@ class MultiResDataset(BaseDataset):
     """MultiRes Dataset: Collated images downsampled at various resolutions"""
 
     def __init__(self, root_dir, centers_dir, transform=None, **kwargs):
-         """
+        """
         Args:
             root_dir (string): Directory with all the images.
             centers_dir (string): location of focal points as pickle file
@@ -43,7 +43,7 @@ class MultiResDataset(BaseDataset):
         offset = 0
         
         for resolution in [256, 128, 64, 32]:
-            image_range = get_image_range(center, size=resolution)
+            image_range = get_image_range(center, crop_size=resolution)
 
             padding = get_padding(image, image_range)
 

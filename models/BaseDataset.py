@@ -38,7 +38,7 @@ class BaseDataset(datasets.ImageFolder):
 
     @abstractmethod
     def custom_transform(self, image, center):
-        raise NotImplementedError("Cannot call __transform on abstract BaseDataset object. Must invoke from subclass") 
+        raise NotImplementedError("Cannot call custom_transform on abstract BaseDataset object. Must invoke from subclass") 
 
     def __center_for_img(self, img_name):
         """
@@ -52,15 +52,21 @@ class BaseDataset(datasets.ImageFolder):
 
         img_key = "/".join(img_name[i:])
 
+        center = self.center_points[img_key]
+        if isinstance(center, tuple):
+            center = [center]
+
         if self.final_loader:
             """
-            If loading as part of final validation, we need a specific focal point, 
-            otherwise just pick a random one
+            If loading as part of final validation, we need a specific focal point... 
             """
             idx = self.final_loader
-            center = self.center_points[img_key][idx]
+            center = center[idx]
         else:
-            center = random.choice(self.center_points[img_key])
+            """
+            ...otherwise just pick a random one
+            """
+            center = random.choice(center)
             
         return center
             
