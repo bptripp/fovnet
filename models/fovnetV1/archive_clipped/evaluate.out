@@ -1,0 +1,31 @@
+=> loading checkpoint 'model_best.pth.tar'
+=> loaded checkpoint 'model_best.pth.tar' (epoch 62)
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+Test: [  0/196]	Time  7.177 ( 7.177)	Loss 1.9868e+00 (1.9868e+00)	Acc@1  58.20 ( 58.20)	Acc@5  79.69 ( 79.69)
+Test: [ 10/196]	Time  0.123 ( 1.346)	Loss 2.8019e+00 (2.4903e+00)	Acc@1  41.80 ( 49.08)	Acc@5  63.67 ( 68.57)
+Test: [ 20/196]	Time  4.183 ( 1.348)	Loss 2.4156e+00 (2.4479e+00)	Acc@1  53.12 ( 49.65)	Acc@5  69.92 ( 69.25)
+Test: [ 30/196]	Time  0.123 ( 1.214)	Loss 2.8353e+00 (2.4313e+00)	Acc@1  40.62 ( 49.60)	Acc@5  61.33 ( 69.48)
+Test: [ 40/196]	Time  4.223 ( 1.249)	Loss 3.2637e+00 (2.5958e+00)	Acc@1  29.69 ( 45.87)	Acc@5  54.69 ( 67.11)
+Test: [ 50/196]	Time  0.123 ( 1.188)	Loss 2.3377e+00 (2.6220e+00)	Acc@1  48.44 ( 44.84)	Acc@5  72.27 ( 66.77)
+Test: [ 60/196]	Time  3.968 ( 1.213)	Loss 2.7379e+00 (2.6259e+00)	Acc@1  41.02 ( 44.70)	Acc@5  66.02 ( 66.83)
+Test: [ 70/196]	Time  0.126 ( 1.182)	Loss 3.0909e+00 (2.6080e+00)	Acc@1  40.62 ( 45.15)	Acc@5  58.20 ( 66.95)
+Test: [ 80/196]	Time  4.343 ( 1.208)	Loss 3.5218e+00 (2.6284e+00)	Acc@1  31.64 ( 44.80)	Acc@5  53.52 ( 66.71)
+Test: [ 90/196]	Time  0.123 ( 1.182)	Loss 4.5196e+00 (2.7110e+00)	Acc@1  17.97 ( 43.31)	Acc@5  38.28 ( 65.45)
+Test: [100/196]	Time  4.141 ( 1.198)	Loss 3.8804e+00 (2.7872e+00)	Acc@1  24.61 ( 42.19)	Acc@5  50.39 ( 64.40)
+Test: [110/196]	Time  0.123 ( 1.183)	Loss 3.0544e+00 (2.8227e+00)	Acc@1  39.84 ( 41.76)	Acc@5  61.33 ( 63.87)
+Test: [120/196]	Time  4.083 ( 1.199)	Loss 3.8371e+00 (2.8656e+00)	Acc@1  27.73 ( 41.30)	Acc@5  48.44 ( 63.22)
+Test: [130/196]	Time  0.124 ( 1.181)	Loss 3.3228e+00 (2.9105e+00)	Acc@1  32.42 ( 40.61)	Acc@5  53.52 ( 62.57)
+Test: [140/196]	Time  4.243 ( 1.194)	Loss 3.2502e+00 (2.9477e+00)	Acc@1  32.42 ( 40.11)	Acc@5  55.08 ( 61.91)
+Test: [150/196]	Time  0.124 ( 1.178)	Loss 3.5828e+00 (2.9921e+00)	Acc@1  33.20 ( 39.45)	Acc@5  50.39 ( 61.22)
+Test: [160/196]	Time  4.169 ( 1.191)	Loss 3.2177e+00 (3.0281e+00)	Acc@1  33.20 ( 38.93)	Acc@5  53.91 ( 60.68)
+Test: [170/196]	Time  0.123 ( 1.177)	Loss 2.7727e+00 (3.0613e+00)	Acc@1  45.70 ( 38.33)	Acc@5  66.41 ( 60.10)
+Test: [180/196]	Time  4.132 ( 1.186)	Loss 2.6803e+00 (3.0733e+00)	Acc@1  42.19 ( 38.12)	Acc@5  64.84 ( 59.92)
+Test: [190/196]	Time  0.123 ( 1.172)	Loss 2.3924e+00 (3.0448e+00)	Acc@1  45.31 ( 38.53)	Acc@5  76.17 ( 60.47)
+ * Acc@1 38.876 Acc@5 60.744
