@@ -24,15 +24,15 @@ class BaseDataset(datasets.ImageFolder):
                 on a sample.
         """
         
-        super(BaseDataset, self).__init__(root_dir, **kwargs)
+        super().__init__(root_dir, **kwargs)
         
-        self.samples = make_dataset(self.root, self.class_to_idx)
+        self.center_points = pickle.load(open(centers_dir, "rb"))
+        
+        self.samples = make_dataset(self.root, self.class_to_idx, self.center_points)
                     
         self.root_dir = root_dir
         
         self.final_loader = False
-        
-        self.center_points = pickle.load(open(centers_dir, "rb"))
         
         self.transform = transform
 

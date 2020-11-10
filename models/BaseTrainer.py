@@ -13,6 +13,8 @@ from PIL import Image
 import sys
 sys.path.append("..")
 
+import pdb
+
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -36,9 +38,9 @@ custom_models = {"DenseNetMini": DenseNetMini, "DenseNetClipped":DenseNetClipped
 model_names += [*custom_models] #append keys
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-parser.add_argument('data', metavar='DIR',
+parser.add_argument('--data', metavar='DIR',
                     help='path to dataset')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='DenseNetClipped',
                     choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
@@ -211,8 +213,8 @@ def main_worker(gpu, ngpus_per_node, args, Dataset, centers_path, num_focal):
     cudnn.benchmark = True
 
     # Data loading code
-    traindir = os.path.join(args.data, 'train/')
-    valdir = os.path.join(args.data, 'val/')
+    traindir = os.path.join(args.data, 'train')
+    valdir = os.path.join(args.data, 'val')
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
@@ -222,7 +224,9 @@ def main_worker(gpu, ngpus_per_node, args, Dataset, centers_path, num_focal):
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
     else:
         train_sampler = None
-
+        
+    pdb.set_trace()
+    
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
@@ -231,7 +235,7 @@ def main_worker(gpu, ngpus_per_node, args, Dataset, centers_path, num_focal):
         Dataset(valdir, centers_path+"_val.pkl", transforms.Compose([transforms.ToTensor(), normalize])),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
-
+    
     if args.evaluate:
         if num_focal > 1:
             validate_final(val_loader, model, criterion, args)

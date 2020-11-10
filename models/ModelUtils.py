@@ -26,11 +26,11 @@ from skimage.filters import gaussian
 
 
 
-def make_dataset(dir, class_to_idx):
+def make_dataset(dir, class_to_idx, center_points):
     """
     Returns a dictionary which maps an integer index to an image and its label (as a class index).
     Required for Dataloaders.
-    Ensures we have saliencies for all items we're going to train on. 
+    Ensures we have center_points for all items we're going to train on. 
     
     Parameters:
         class_to_idx (dict): Dict with items (class_name, class_index). 
@@ -43,7 +43,8 @@ def make_dataset(dir, class_to_idx):
         """
         Ensure we have saliencies for this image
         """
-        return os.path.isfile(x.split(".JPEG")[0]+".saliency.npy.gz")
+        x = x.split("CLS-LOC/")[1]
+        return x in center_points
     
     for target in sorted(class_to_idx.keys()):
         d = os.path.join(dir, target)
