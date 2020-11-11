@@ -10,6 +10,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils, datasets
 
+import os
 
 class BaseDataset(datasets.ImageFolder):
     """BaseDataset is an abstract class for defining other datasets.
@@ -44,7 +45,8 @@ class BaseDataset(datasets.ImageFolder):
         """
         Get the focal point of an img based on the image name
         """
-        img_name = img_name.split("/")
+        img_name = img_name.split(os.sep)
+        
         if "val" in img_name:
             i = img_name.index("val")
         else:

@@ -5,4 +5,5 @@ from BaseTrainer import main
 
 centers_path = "../1FocalPoints"
 
-main(BaselineDataset, centers_path, num_focal=1)
+if __name__ == '__main__':
+    main(BaselineDataset, centers_path, num_focal=1)

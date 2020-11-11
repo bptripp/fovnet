@@ -20,6 +20,8 @@ from numpy.fft  import fft2, ifft2
 import numba
 from numba import jit
 
+import pdb
+
 import cv2
 from skimage.filters import gaussian
 
@@ -43,9 +45,10 @@ def make_dataset(dir, class_to_idx, center_points):
         """
         Ensure we have saliencies for this image
         """
-        x = x.split("CLS-LOC/")[1]
+        x = x.split("CLS-LOC"+os.sep)[1]
+        x = x.replace(os.sep, "/")
         return x in center_points
-    
+    # pdb.set_trace()
     for target in sorted(class_to_idx.keys()):
         d = os.path.join(dir, target)
         if not os.path.isdir(d):
