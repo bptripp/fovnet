@@ -3,4 +3,6 @@ from CartesianDataset import CartesianDataset
 sys.path.append("..")
 from BaseTrainer import main
 
-main(CartesianDataset)
+centers_path = "../3FocalPoints"
+
+main(CartesianDataset, centers_path, num_focal=3)
