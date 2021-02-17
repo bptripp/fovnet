@@ -1,0 +1,48 @@
+{}
+=> loading checkpoint 'model_best.pth.tar'
+=> loaded checkpoint 'model_best.pth.tar' (epoch 74)
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+/home/p2torabi/anaconda3/lib/python3.7/site-packages/skimage/filters/_gaussian.py:108: RuntimeWarning: Images with dimensions (M, N, 3) are interpreted as 2D+RGB by default. Use `multichannel=False` to interpret as 3D image with last dimension of length 3.
+  warn(RuntimeWarning(msg))
+Test: [  0/196]	Time 15.826 (15.826)	Loss 1.1015e+00 (1.1015e+00)	Acc@1  72.27 ( 72.27)	Acc@5  90.62 ( 90.62)
+Test: [ 10/196]	Time  0.202 ( 2.986)	Loss 1.5688e+00 (1.2460e+00)	Acc@1  59.77 ( 69.89)	Acc@5  84.38 ( 88.78)
+Test: [ 20/196]	Time  7.806 ( 2.840)	Loss 1.5201e+00 (1.2473e+00)	Acc@1  69.14 ( 70.28)	Acc@5  85.16 ( 88.41)
+Test: [ 30/196]	Time  0.197 ( 2.500)	Loss 1.1773e+00 (1.2312e+00)	Acc@1  71.48 ( 70.84)	Acc@5  92.19 ( 88.75)
+Test: [ 40/196]	Time  6.551 ( 2.515)	Loss 1.4408e+00 (1.3051e+00)	Acc@1  60.55 ( 67.91)	Acc@5  89.84 ( 88.23)
+Test: [ 50/196]	Time  0.185 ( 2.363)	Loss 8.9317e-01 (1.2929e+00)	Acc@1  79.69 ( 67.75)	Acc@5  93.75 ( 88.63)
+Test: [ 60/196]	Time  5.587 ( 2.419)	Loss 1.4958e+00 (1.2976e+00)	Acc@1  65.23 ( 67.58)	Acc@5  87.11 ( 88.79)
+Test: [ 70/196]	Time  0.183 ( 2.370)	Loss 1.4387e+00 (1.2874e+00)	Acc@1  67.97 ( 68.01)	Acc@5  87.50 ( 88.83)
+Test: [ 80/196]	Time  6.656 ( 2.414)	Loss 2.4250e+00 (1.3298e+00)	Acc@1  48.44 ( 67.29)	Acc@5  72.27 ( 88.12)
+Test: [ 90/196]	Time  1.138 ( 2.378)	Loss 3.2746e+00 (1.4457e+00)	Acc@1  30.47 ( 65.13)	Acc@5  58.20 ( 86.34)
+Test: [100/196]	Time  6.072 ( 2.390)	Loss 2.4795e+00 (1.5453e+00)	Acc@1  40.23 ( 63.13)	Acc@5  73.83 ( 84.84)
+Test: [110/196]	Time  2.415 ( 2.384)	Loss 1.9321e+00 (1.6071e+00)	Acc@1  56.64 ( 62.11)	Acc@5  78.12 ( 83.87)
+Test: [120/196]	Time  6.398 ( 2.405)	Loss 2.6998e+00 (1.6628e+00)	Acc@1  43.75 ( 61.18)	Acc@5  65.62 ( 82.88)
+Test: [130/196]	Time  2.889 ( 2.397)	Loss 2.0223e+00 (1.7163e+00)	Acc@1  56.25 ( 60.14)	Acc@5  75.39 ( 82.10)
+Test: [140/196]	Time  4.157 ( 2.395)	Loss 2.4297e+00 (1.7633e+00)	Acc@1  47.27 ( 59.25)	Acc@5  68.75 ( 81.34)
+Test: [150/196]	Time  2.941 ( 2.382)	Loss 2.6046e+00 (1.8128e+00)	Acc@1  53.52 ( 58.51)	Acc@5  69.92 ( 80.57)
+Test: [160/196]	Time  4.881 ( 2.385)	Loss 2.0585e+00 (1.8496e+00)	Acc@1  56.25 ( 57.96)	Acc@5  78.12 ( 79.99)
+Test: [170/196]	Time  4.272 ( 2.374)	Loss 1.6052e+00 (1.8855e+00)	Acc@1  64.45 ( 57.23)	Acc@5  83.20 ( 79.44)
+Test: [180/196]	Time  4.169 ( 2.372)	Loss 1.8828e+00 (1.9116e+00)	Acc@1  53.12 ( 56.70)	Acc@5  81.25 ( 79.09)
+Test: [190/196]	Time  3.500 ( 2.358)	Loss 1.7111e+00 (1.9014e+00)	Acc@1  54.30 ( 56.84)	Acc@5  85.55 ( 79.31)
+ * Acc@1 57.120 Acc@5 79.472
